@@ -1,4 +1,5 @@
 using De1.Data;
+using De1.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -35,15 +35,18 @@ public class HomeController(AppDbContext context) : Controller
     public async Task<IActionResult> Borrow(int id)
     {
         var item = await context.Equipments.FindAsync(id);
-
-        // REQ-02: Concurrency Check [cite: 19]
         if (item == null || item.Status == "Borrowed")
-        {
-            return BadRequest("Thiết bị đã được mượn hoặc không tồn tại!");
-        }
+            return BadRequest("Thiết bị không sẵn sàng!"); // REQ-02: Concurrency Handling
 
-        item.Status = "Borrowed";
-        await context.SaveChangesAsync();
+        try
+        {
+            item.Status = "Borrowed";
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return BadRequest("Thiết bị vừa mới bị người khác mượn, vui lòng tải lại trang!");
+        }
         return RedirectToAction(nameof(Index));
     }
 

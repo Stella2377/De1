@@ -43,6 +43,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             // Áp dụng bộ lọc
             entityBuilder.HasQueryFilter(lambda);
+
+            modelBuilder.Entity<Equipment>()
+                .Property(e => e.Status)
+                .IsConcurrencyToken(); // kiểm tra tranh chấp
         }
     }
 
@@ -53,20 +57,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         foreach (var entry in entries)
         {
             var now = DateTime.Now;
-
             if (entry.State == EntityState.Added)
             {
                 entry.Property("CreatedAt").CurrentValue = now;
             }
-            else if (entry.State == EntityState.Modified)
+
+            // Gom nhóm logic để đảm bảo UpdatedAt luôn được gán khi có thay đổi
+            if (entry.State == EntityState.Modified || entry.State == EntityState.Deleted)
             {
-                entry.Property("UpdatedAt").CurrentValue = now; 
-            }
-            else if (entry.State == EntityState.Deleted)
-            {
-                // REQ-03: Chuyển đổi tác vụ Xóa thành Cập nhật trạng thái
-                entry.State = EntityState.Modified;
-                entry.Property("IsDeleted").CurrentValue = true;
+                entry.Property("UpdatedAt").CurrentValue = now;
+
+                if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Property("IsDeleted").CurrentValue = true; // REQ -03: Soft Delete
+                }
             }
         }
         return base.SaveChangesAsync(cancellationToken);

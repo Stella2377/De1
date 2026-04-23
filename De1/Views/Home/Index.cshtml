@@ -2,7 +2,37 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@model IEnumerable<De1.DTOs.EquipmentVM>
+
+<h2>Danh sách thiết bị giảng dạy</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tên</th>
+            <th>Loại</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.CategoryName</td>
+                <td>@item.Status</td>
+                <td>
+                    @if (item.Status == "Available")
+                    {
+                        <form asp-action="Borrow" asp-route-id="@item.Id" method="post" style="display:inline">
+                            <button class="btn btn-primary">Mượn</button>
+                        </form>
+                    }
+                    <form asp-action="SoftDelete" asp-route-id="@item.Id" method="post" style="display:inline">
+                        <button class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
